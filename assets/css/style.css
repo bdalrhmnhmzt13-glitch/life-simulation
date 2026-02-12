@@ -1,0 +1,318 @@
+/* ===== محاكاة الحياة - HAMZA ===== */
+:root {
+    --primary-blue: #3b82f6;
+    --primary-pink: #ec4899;
+    --primary-green: #10b981;
+    --primary-orange: #f59e0b;
+    --primary-purple: #8b5cf6;
+    --dark-bg: #0f172a;
+    --glass-bg: rgba(15, 23, 42, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    min-height: 100vh;
+    padding: 20px;
+    color: var(--text-primary);
+}
+
+/* ===== شاشة التحميل ===== */
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.loader {
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.loader-icon {
+    font-size: 80px;
+    animation: bounce 1s infinite;
+}
+
+.progress-bar {
+    width: 300px;
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    margin: 20px 0;
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-blue), var(--primary-purple));
+    animation: progress 2s ease forwards;
+}
+
+@keyframes progress {
+    to { width: 100%; }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+/* ===== الزجاج ===== */
+.glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+}
+
+.glass-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 25px;
+    margin-bottom: 20px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.logo i {
+    font-size: 32px;
+    color: var(--primary-blue);
+    animation: spin 10s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.version {
+    font-size: 14px;
+    background: var(--primary-blue);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-left: 10px;
+}
+
+/* ===== الإحصائيات ===== */
+.stats-dashboard {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-icon.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.stat-icon.orange { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.stat-icon.green { background: linear-gradient(135deg, #10b981, #059669); }
+.stat-icon.purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+.stat-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-size: 32px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+/* ===== منطقة المحاكاة ===== */
+.simulation-area {
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.canvas-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #000;
+}
+
+canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+}
+
+.canvas-watermark {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    color: rgba(255,255,255,0.3);
+    font-size: 12px;
+    z-index: 10;
+}
+
+/* ===== شريط الأدوات ===== */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.tool-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tool-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-primary);
+    padding: 12px 20px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tool-btn:hover {
+    background: rgba(59, 130, 246, 0.2);
+    transform: translateY(-2px);
+}
+
+.tool-btn.active {
+    background: var(--primary-blue);
+    border-color: transparent;
+}
+
+.tool-btn.danger:hover {
+    background: #ef4444;
+}
+
+.tool-btn.success:hover {
+    background: #10b981;
+}
+
+/* ===== سجل الأحداث ===== */
+.event-log {
+    margin-bottom: 20px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.log-content {
+    font-size: 14px;
+}
+
+.log-entry {
+    padding: 8px;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+}
+
+/* ===== تذييل المطور ===== */
+.developer-footer {
+    text-align: center;
+}
+
+.footer-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    color: var(--text-secondary);
+}
+
+.developer {
+    font-weight: bold;
+    color: #fbbf24;
+}
+
+.nickname {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.github-star a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.github-star a:hover {
+    color: var(--primary-blue);
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ===== التجاوب ===== */
+@media (max-width: 768px) {
+    .stats-dashboard {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .toolbar {
+        flex-direction: column;
+    }
+    
+    .tool-group {
+        width: 100%;
+        justify-content: center;
+    }
+}

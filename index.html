@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="محاكاة الحياة - مشروع تفاعلي لكشف ومحاكاة سلوك البشر والمنازل والأشجار">
+    <meta name="keywords" content="محاكاة, حياة, ذكاء اصطناعي, JavaScript, HAMZA">
+    <meta name="author" content="HAMZA (The Coder)">
+    
+    <title>محاكاة الحياة | HAMZA</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    <link rel="apple-touch-icon" href="assets/images/app-icon.png">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+    <link rel="stylesheet" href="assets/css/android.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Open Graph / Social Media -->
+    <meta property="og:title" content="محاكاة الحياة - HAMZA">
+    <meta property="og:description" content="مشروع محاكاة الحياة التفاعلي">
+    <meta property="og:image" content="assets/images/og-image.jpg">
+    <meta property="og:url" content="https://hamza.github.io/life-simulation">
+</head>
+<body>
+    <!-- شاشة التحميل -->
+    <div id="loading-screen">
+        <div class="loader">
+            <div class="loader-icon">🤖</div>
+            <h2>محاكاة الحياة</h2>
+            <div class="progress-bar">
+                <div class="progress-fill"></div>
+            </div>
+            <p>HAMZA (The Coder)</p>
+        </div>
+    </div>
+
+    <!-- التطبيق الرئيسي -->
+    <div id="app" class="hidden">
+        <!-- الهيدر -->
+        <header class="glass-header">
+            <div class="logo">
+                <i class="fas fa-robot"></i>
+                <h1>محاكاة الحياة <span class="version">v3.0</span></h1>
+            </div>
+            <div class="header-controls">
+                <button id="fullscreen-btn" class="icon-btn">
+                    <i class="fas fa-expand"></i>
+                </button>
+                <button id="settings-btn" class="icon-btn">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <button id="github-btn" class="icon-btn" onclick="window.open('https://github.com/HAMZA/life-simulation', '_blank')">
+                    <i class="fab fa-github"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- لوحة الإحصائيات -->
+        <div class="stats-dashboard">
+            <div class="stat-card glass">
+                <div class="stat-icon blue">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">البشر</span>
+                    <span class="stat-value" id="stats-humans">0</span>
+                </div>
+            </div>
+            <div class="stat-card glass">
+                <div class="stat-icon orange">
+                    <i class="fas fa-home"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">المنازل</span>
+                    <span class="stat-value" id="stats-houses">0</span>
+                </div>
+            </div>
+            <div class="stat-card glass">
+                <div class="stat-icon green">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">الأشجار</span>
+                    <span class="stat-value" id="stats-trees">0</span>
+                </div>
+            </div>
+            <div class="stat-card glass">
+                <div class="stat-icon purple">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <span class="stat-label">اليوم</span>
+                    <span class="stat-value" id="stats-day">1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- منطقة المحاكاة -->
+        <div class="simulation-area glass">
+            <div class="canvas-container">
+                <canvas id="simulationCanvas"></canvas>
+                <div class="canvas-watermark">HAMZA</div>
+            </div>
+        </div>
+
+        <!-- شريط الأدوات -->
+        <div class="toolbar glass">
+            <div class="tool-group">
+                <button class="tool-btn active" id="tool-human" data-tool="human">
+                    <i class="fas fa-user"></i>
+                    <span>إنسان</span>
+                </button>
+                <button class="tool-btn" id="tool-house" data-tool="house">
+                    <i class="fas fa-home"></i>
+                    <span>منزل</span>
+                </button>
+                <button class="tool-btn" id="tool-tree" data-tool="tree">
+                    <i class="fas fa-tree"></i>
+                    <span>شجرة</span>
+                </button>
+            </div>
+            
+            <div class="tool-group">
+                <button class="tool-btn" id="tool-male">
+                    <i class="fas fa-mars"></i>
+                    <span>ذكر</span>
+                </button>
+                <button class="tool-btn" id="tool-female">
+                    <i class="fas fa-venus"></i>
+                    <span>أنثى</span>
+                </button>
+            </div>
+            
+            <div class="tool-group">
+                <button class="tool-btn danger" id="tool-clear">
+                    <i class="fas fa-trash"></i>
+                    <span>مسح</span>
+                </button>
+                <button class="tool-btn success" id="tool-reset">
+                    <i class="fas fa-undo"></i>
+                    <span>إعادة</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- لوحة التحكم المتقدمة -->
+        <div class="advanced-controls glass">
+            <div class="control-group">
+                <label>سرعة المحاكاة</label>
+                <input type="range" id="simulation-speed" min="1" max="10" value="5">
+                <span id="speed-value">5x</span>
+            </div>
+            <div class="control-group">
+                <label>الجاذبية</label>
+                <input type="range" id="gravity" min="0.1" max="1" step="0.1" value="0.5">
+                <span id="gravity-value">0.5</span>
+            </div>
+            <div class="control-group">
+                <label>عدد البشر الأولي</label>
+                <input type="number" id="initial-humans" min="0" max="20" value="5">
+            </div>
+        </div>
+
+        <!-- سجل الأحداث -->
+        <div class="event-log glass">
+            <div class="log-header">
+                <h3><i class="fas fa-history"></i> سجل الأحداث</h3>
+                <button id="clear-log" class="icon-btn small">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="log-content" id="event-log-content">
+                <div class="log-entry">مرحباً بك في محاكاة الحياة!</div>
+            </div>
+        </div>
+
+        <!-- تذييل المطور -->
+        <footer class="developer-footer glass">
+            <div class="footer-content">
+                <span class="copyright">© 2026</span>
+                <i class="fas fa-code"></i>
+                <span class="developer">HAMZA <span class="nickname">(The Coder)</span></span>
+                <i class="fas fa-laptop-code"></i>
+                <span class="github-star">
+                    <i class="fab fa-github"></i> 
+                    <a href="https://github.com/HAMZA/life-simulation" target="_blank">GitHub</a>
+                </span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="assets/js/classes/Human.js"></script>
+    <script src="assets/js/classes/House.js"></script>
+    <script src="assets/js/classes/Tree.js"></script>
+    <script src="assets/js/classes/World.js"></script>
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
