@@ -14,3 +14,6 @@ desktop.ini
 *.tmp
 cache/
 temp/
+*~
+*.swp
+*.swo
