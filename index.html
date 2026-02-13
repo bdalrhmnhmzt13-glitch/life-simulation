@@ -1,418 +1,48 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>محاكاة الحياة - HAMZA</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 15px;
-        }
-
-        .game-container {
-            max-width: 1200px;
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            backdrop-filter: blur(10px);
-            border-radius: 30px;
-            padding: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: rgba(0,0,0,0.3);
-            border-radius: 20px;
-            padding: 15px;
-            color: white;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.1);
-            backdrop-filter: blur(5px);
-        }
-
-        .stat-icon {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-
-        .stat-value {
-            font-size: 32px;
-            font-weight: bold;
-            color: #fbbf24;
-        }
-
-        .stat-label {
-            font-size: 14px;
-            color: #94a3b8;
-        }
-
-        .canvas-wrapper {
-            position: relative;
-            width: 100%;
-            height: 450px;
-            background: #000;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 2px solid #3b82f6;
-            margin-bottom: 20px;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            touch-action: none;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255,255,255,0.2);
-            box-shadow: 0 5px 0 #1e3a8a;
-        }
-
-        .btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 0 0 #1e3a8a;
-        }
-
-        .btn-male { background: #3b82f6; }
-        .btn-female { background: #ec4899; }
-        .btn-house { background: #f59e0b; }
-        .btn-tree { background: #10b981; }
-        .btn-clear { background: #ef4444; }
-        .btn-reset { background: #8b5cf6; }
-
-        .developer {
-            text-align: center;
-            color: #94a3b8;
-            padding: 20px;
-            font-size: 14px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-
-        .developer span {
-            color: #fbbf24;
-            font-weight: bold;
-        }
-
-        @media (max-width: 768px) {
-            .stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
+<p>p.update();
+                p.draw();
+                return true;
+            });
             
-            .canvas-wrapper {
-                height: 350px;
-            }
+            // Update and draw humans
+            humans.forEach(human =&gt; {
+                human.update();
+                human.draw();
+            });
             
-            .btn {
-                padding: 10px 18px;
-                font-size: 14px;
-            }
+            // Draw houses
+            houses.forEach(house =&gt; {
+                house.draw();
+            });
+            
+            // Check auto-spawn
+            checkAutoSpawn();
+            
+            // Check house building
+            checkHouseBuilding();
+            
+            requestAnimationFrame(gameLoop);
         }
 
-        @media (max-width: 480px) {
-            .canvas-wrapper {
-                height: 280px;
-            }
-            
-            .btn {
-                padding: 8px 16px;
-                font-size: 13px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="game-container">
-        <!-- الإحصائيات -->
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-icon">👨‍👩‍👧</div>
-                <div class="stat-value" id="stats-humans">0</div>
-                <div class="stat-label">البشر</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🏠</div>
-                <div class="stat-value" id="stats-houses">0</div>
-                <div class="stat-label">المنازل</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🌲</div>
-                <div class="stat-value" id="stats-trees">0</div>
-                <div class="stat-label">الأشجار</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">📅</div>
-                <div class="stat-value" id="stats-day">1</div>
-                <div class="stat-label">اليوم</div>
-            </div>
-        </div>
-
-        <!-- منطقة المحاكاة -->
-        <div class="canvas-wrapper">
-            <canvas id="simulationCanvas"></canvas>
-        </div>
-
-        <!-- أزرار التحكم -->
-        <div class="controls">
-            <button class="btn btn-male" id="btn-male">
-                <i class="fas fa-mars"></i> ذكر
-            </button>
-            <button class="btn btn-female" id="btn-female">
-                <i class="fas fa-venus"></i> أنثى
-            </button>
-            <button class="btn btn-house" id="btn-house">
-                <i class="fas fa-home"></i> منزل
-            </button>
-            <button class="btn btn-tree" id="btn-tree">
-                <i class="fas fa-tree"></i> شجرة
-            </button>
-            <button class="btn btn-clear" id="btn-clear">
-                <i class="fas fa-trash"></i> مسح
-            </button>
-            <button class="btn btn-reset" id="btn-reset">
-                <i class="fas fa-undo"></i> إعادة
-            </button>
-        </div>
-
-        <!-- توقيع المطور -->
-        <div class="developer">
-            <i class="fas fa-code"></i> المبرمج الصانع: 
-            <span>HAMZA ROOT (The Coder)</span>
-            <i class="fas fa-laptop-code"></i>
-            <div style="font-size: 12px; margin-top: 5px;">© 2026 جميع الحقوق محفوظة</div>
-        </div>
-    </div>
-
-    <!-- Font Awesome -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
-    
-    <!-- كود المحاكاة المدمج مباشرة (حل سريع) -->
-    <script>
-        // ================ محاكاة الحياة - كود مباشر ================
-        const canvas = document.getElementById('simulationCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // ضبط حجم الكانفس
+        // Responsive canvas
         function resizeCanvas() {
             const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
+            const maxWidth = Math.min(800, container.clientWidth - 20);
+            const scale = maxWidth / 800;
+            
+            if (window.innerWidth &lt; 768) {
+                canvas.style.width = '100%';
+                canvas.style.height = 'auto';
+            } else {
+                canvas.style.width = '800px';
+                canvas.style.height = '600px';
+            }
         }
+
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        // المتغيرات
-        let humans = [];
-        let houses = [];
-        let trees = [];
-        let currentGender = 'male';
-        let dayCounter = 1;
-
-        // إعدادات
-        const GRAVITY = 0.3;
-        const SPEED = 1.2;
-        const HUMAN_SIZE = 20;
-
-        // كلاس الإنسان
-        class Human {
-            constructor(x, y, gender) {
-                this.x = x;
-                this.y = y;
-                this.gender = gender;
-                this.size = HUMAN_SIZE;
-                this.vx = 0;
-                this.vy = 0;
-                this.onGround = false;
-                this.direction = Math.random() > 0.5 ? 1 : -1;
-                this.walkTimer = Math.random() * 60;
-            }
-
-            update() {
-                this.vy += GRAVITY;
-                this.x += this.vx;
-                this.y += this.vy;
-
-                if (this.y > canvas.height - this.size - 20) {
-                    this.y = canvas.height - this.size - 20;
-                    this.vy = 0;
-                    this.onGround = true;
-                }
-
-                if (this.onGround) {
-                    this.walkTimer++;
-                    if (this.walkTimer > 60) {
-                        this.direction = Math.random() > 0.5 ? 1 : -1;
-                        this.walkTimer = 0;
-                    }
-                    this.vx = this.direction * SPEED * 0.5;
-                }
-
-                if (this.x < 0) { this.x = 0; this.direction = 1; }
-                if (this.x > canvas.width - this.size) { this.x = canvas.width - this.size; this.direction = -1; }
-            }
-
-            draw() {
-                ctx.fillStyle = this.gender === 'male' ? '#3b82f6' : '#ec4899';
-                ctx.fillRect(this.x, this.y, this.size, this.size);
-                ctx.fillStyle = '#ffdbac';
-                ctx.fillRect(this.x + 4, this.y - 6, this.size - 8, 6);
-            }
-        }
-
-        // كلاس المنزل
-        class House {
-            constructor(x, y) {
-                this.x = x - 30;
-                this.y = y - 40;
-            }
-            draw() {
-                ctx.fillStyle = '#f59e0b';
-                ctx.fillRect(this.x, this.y, 60, 50);
-                ctx.fillStyle = '#78350f';
-                ctx.beginPath();
-                ctx.moveTo(this.x - 10, this.y);
-                ctx.lineTo(this.x + 30, this.y - 30);
-                ctx.lineTo(this.x + 70, this.y);
-                ctx.fill();
-            }
-        }
-
-        // كلاس الشجرة
-        class Tree {
-            constructor(x, y) {
-                this.x = x - 20;
-                this.y = y - 30;
-            }
-            draw() {
-                ctx.fillStyle = '#92400e';
-                ctx.fillRect(this.x + 15, this.y, 10, 40);
-                ctx.fillStyle = '#10b981';
-                ctx.beginPath();
-                ctx.arc(this.x + 20, this.y - 10, 20, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
-
-        // رسم الخلفية
-        function drawBackground() {
-            ctx.fillStyle = '#1e293b';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = '#475569';
-            ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
-        }
-
-        // تحديث الإحصائيات
-        function updateStats() {
-            document.getElementById('stats-humans').innerHTML = humans.length;
-            document.getElementById('stats-houses').innerHTML = houses.length;
-            document.getElementById('stats-trees').innerHTML = trees.length;
-            document.getElementById('stats-day').innerHTML = Math.floor(dayCounter);
-        }
-
-        // إعادة تعيين
-        function resetSimulation() {
-            humans = [];
-            houses = [];
-            trees = [];
-            
-            houses.push(new House(100, canvas.height - 80));
-            houses.push(new House(400, canvas.height - 80));
-            trees.push(new Tree(200, canvas.height - 80));
-            trees.push(new Tree(500, canvas.height - 80));
-            
-            for (let i = 0; i < 3; i++) {
-                humans.push(new Human(250 + i * 50, canvas.height - 80, i % 2 ? 'male' : 'female'));
-            }
-        }
-
-        // أحداث الفأرة
-        function getMousePos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            return {
-                x: (clientX - rect.left) * scaleX,
-                y: (clientY - rect.top) * scaleY
-            };
-        }
-
-        canvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            const pos = getMousePos(e);
-            if (e.shiftKey) houses.push(new House(pos.x, pos.y));
-            else if (e.ctrlKey) trees.push(new Tree(pos.x, pos.y));
-            else humans.push(new Human(pos.x, pos.y, currentGender));
-        });
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const pos = getMousePos(e);
-            humans.push(new Human(pos.x, pos.y, currentGender));
-        });
-
-        // أزرار التحكم
-        document.getElementById('btn-male').onclick = () => currentGender = 'male';
-        document.getElementById('btn-female').onclick = () => currentGender = 'female';
-        document.getElementById('btn-house').onclick = () => houses.push(new House(canvas.width/2, canvas.height/2));
-        document.getElementById('btn-tree').onclick = () => trees.push(new Tree(canvas.width/2, canvas.height/2));
-        document.getElementById('btn-clear').onclick = () => humans = [];
-        document.getElementById('btn-reset').onclick = resetSimulation;
-
-        // بدء المحاكاة
-        resetSimulation();
-        
-        function animate() {
-            for (let h of humans) h.update();
-            drawBackground();
-            for (let h of houses) h.draw();
-            for (let t of trees) t.draw();
-            for (let h of humans) h.draw();
-            dayCounter += 0.001;
-            updateStats();
-            requestAnimationFrame(animate);
-        }
-        animate();
-    </script>
-</body>
-</html>
+        // Start game
+        gameLoop();
+        showNotification('Welcome to Family Sandbox! 👋');
+    
+</p>
