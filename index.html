@@ -1,16 +1,810 @@
-<p>p.update();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Sandbox Game - Family Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+            letter-spacing: 2px;
+        }
+
+        .game-wrapper {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .canvas-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5), 
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #gameCanvas {
+            display: block;
+            background: #0a0a0a;
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            min-width: 280px;
+            max-width: 350px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-section {
+            margin-bottom: 25px;
+        }
+
+        .control-section h3 {
+            color: #feca57;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .element-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .element-btn {
+            padding: 12px 8px;
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .element-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .element-btn:hover::before {
+            left: 100%;
+        }
+
+        .element-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .element-btn.active {
+            border-color: #ffffff;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.5), 
+                        inset 0 0 10px rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .element-btn.sand { background: linear-gradient(135deg, #f4d03f, #d4ac0d); }
+        .element-btn.water { background: linear-gradient(135deg, #3498db, #2980b9); }
+        .element-btn.soil { background: linear-gradient(135deg, #8b4513, #654321); }
+        .element-btn.fire { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+        .element-btn.wood { background: linear-gradient(135deg, #8b5a2b, #6b4423); }
+        .element-btn.stone { background: linear-gradient(135deg, #7f8c8d, #5d6d7e); }
+        .element-btn.human-male { background: linear-gradient(135deg, #3498db, #1a5276); }
+        .element-btn.human-female { background: linear-gradient(135deg, #e91e63, #ad1457); }
+        .element-btn.house { background: linear-gradient(135deg, #9b59b6, #7d3c98); }
+
+        .size-control {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .size-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .size-value {
+            background: #feca57;
+            color: #1a1a2e;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1rem;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #feca57;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(254, 202, 87, 0.5);
+            transition: transform 0.2s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .clear-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .clear-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .info-section {
+            margin-top: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .info-section h2 {
+            color: #48dbfb;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #feca57;
+        }
+
+        .info-card h4 {
+            color: #feca57;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .info-card p {
+            color: #b0b0b0;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+
+        .gender-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .gender-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .gender-dot.male { background: #3498db; }
+        .gender-dot.female { background: #e91e63; }
+
+        .stats-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+        }
+
+        .stat-value {
+            color: #feca57;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .game-wrapper {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .control-panel {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .element-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .canvas-container {
+                width: 100%;
+            }
+
+            #gameCanvas {
+                width: 100% !important;
+                height: auto !important;
+            }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(254, 202, 87, 0.9);
+            color: #1a1a2e;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: bold;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏠 2D Sandbox Game - Family Edition</h1>
+        
+        <div class="game-wrapper">
+            <div class="canvas-container">
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+            </div>
+            
+            <div class="control-panel">
+                <div class="control-section">
+                    <h3>🎨 Elements</h3>
+                    <div class="element-grid">
+                        <button class="element-btn sand active" data-element="sand">Sand</button>
+                        <button class="element-btn water" data-element="water">Water</button>
+                        <button class="element-btn soil" data-element="soil">Soil</button>
+                        <button class="element-btn fire" data-element="fire">Fire</button>
+                        <button class="element-btn wood" data-element="wood">Wood</button>
+                        <button class="element-btn stone" data-element="stone">Stone</button>
+                        <button class="element-btn human-male" data-element="humanMale">Man</button>
+                        <button class="element-btn human-female" data-element="humanFemale">Woman</button>
+                        <button class="element-btn house" data-element="house">House</button>
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>📏 Brush Size</h3>
+                    <div class="size-control">
+                        <div class="size-header">
+                            <span>Particle Size</span>
+                            <span class="size-value" id="sizeValue">5px</span>
+                        </div>
+                        <input type="range" id="sizeSlider" min="1" max="20" value="5">
+                    </div>
+                </div>
+
+                <div class="control-section">
+                    <h3>📊 Statistics</h3>
+                    <div class="stats-display">
+                        <div class="stat-item">
+                            <span>Population:</span>
+                            <span class="stat-value" id="population">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Houses Built:</span>
+                            <span class="stat-value" id="houses">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Next Spawn:</span>
+                            <span class="stat-value" id="nextSpawn">60s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="clear-btn" id="clearBtn">🗑️ Clear Canvas</button>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h2>📖 Game Rules & Guide</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>👥 Character Genders</h4>
+                    <p>
+                        <span class="gender-indicator"><span class="gender-dot male"></span> Blue = Male</span><br>
+                        <span class="gender-indicator"><span class="gender-dot female"></span> Pink = Female</span><br>
+                        Characters move around, interact with elements, and form families!
+                    </p>
+                </div>
+                <div class="info-card">
+                    <h4>⏰ Auto-Spawning</h4>
+                    <p>A new character will automatically join your world every 60 seconds. Watch your family grow over time! The timer resets after each new arrival.</p>
+                </div>
+                <div class="info-card">
+                    <h4>🏠 House Building</h4>
+                    <p>When your population reaches 5 people, a house will be automatically built! Houses provide shelter and appear as purple structures in the world.</p>
+                </div>
+                <div class="info-card">
+                    <h4>🎮 Controls</h4>
+                    <p>Click or touch the canvas to draw selected elements. Use the slider to adjust particle size. Select different elements from the grid above. Works on both mouse and touch devices!</p>
+                </div>
+                <div class="info-card">
+                    <h4>🔥 Element Interactions</h4>
+                    <p>Fire burns wood, water extinguishes fire, sand falls and piles up, soil supports plant growth. Experiment with different combinations!</p>
+                </div>
+                <div class="info-card">
+                    <h4>💡 Tips</h4>
+                    <p>Create terrain with soil and stone, add water for rivers, plant trees (wood), and watch your characters explore their environment!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeValue = document.getElementById('sizeValue');
+        const clearBtn = document.getElementById('clearBtn');
+        const elementBtns = document.querySelectorAll('.element-btn');
+        const notification = document.getElementById('notification');
+        
+        // Stats elements
+        const populationEl = document.getElementById('population');
+        const housesEl = document.getElementById('houses');
+        const nextSpawnEl = document.getElementById('nextSpawn');
+
+        // Game state
+        let currentElement = 'sand';
+        let brushSize = 5;
+        let isDrawing = false;
+        let particles = [];
+        let humans = [];
+        let houses = [];
+        let lastSpawnTime = Date.now();
+        let spawnInterval = 60000; // 60 seconds
+        let houseThreshold = 5;
+
+        // Element colors
+        const colors = {
+            sand: { r: 244, g: 208, b: 63 },
+            water: { r: 52, g: 152, b: 219 },
+            soil: { r: 139, g: 69, b: 19 },
+            fire: { r: 231, g: 76, b: 60 },
+            wood: { r: 139, g: 90, b: 43 },
+            stone: { r: 127, g: 140, b: 141 },
+            humanMale: { r: 52, g: 152, b: 219 },
+            humanFemale: { r: 233, g: 30, b: 99 },
+            house: { r: 155, g: 89, b: 182 }
+        };
+
+        // Handle element selection
+        elementBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                elementBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentElement = btn.dataset.element;
+            });
+        });
+
+        // Handle size slider
+        sizeSlider.addEventListener('input', (e) => {
+            brushSize = parseInt(e.target.value);
+            sizeValue.textContent = brushSize + 'px';
+        });
+
+        // Show notification
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Particle class
+        class Particle {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.size = brushSize;
+                this.vx = 0;
+                this.vy = 0;
+                this.color = colors[type];
+                this.life = 100;
+                this.settled = false;
+            }
+
+            update() {
+                if (this.type === 'sand' || this.type === 'soil') {
+                    // Gravity
+                    if (this.y < canvas.height - this.size) {
+                        this.vy += 0.5;
+                    }
+                    
+                    // Apply velocity
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    // Friction
+                    this.vx *= 0.8;
+                    this.vy *= 0.8;
+                    
+                    // Floor collision
+                    if (this.y >= canvas.height - this.size) {
+                        this.y = canvas.height - this.size;
+                        this.vy = 0;
+                        this.settled = true;
+                    }
+                } else if (this.type === 'water') {
+                    // Water flows
+                    if (this.y < canvas.height - this.size) {
+                        this.vy += 0.3;
+                    }
+                    
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    
+                    // Spread horizontally
+                    if (this.settled && Math.random() < 0.1) {
+                        this.vx += (Math.random() - 0.5) * 2;
+                    }
+                    
+                    this.vx *= 0.9;
+                    this.vy *= 0.9;
+                    
+                    if (this.y >= canvas.height - this.size) {
+                        this.y = canvas.height - this.size;
+                        this.vy = 0;
+                    }
+                } else if (this.type === 'fire') {
+                    this.life--;
+                    this.y -= 1;
+                    this.x += (Math.random() - 0.5) * 2;
+                    
+                    // Random color variation for fire effect
+                    this.color = {
+                        r: 231 + Math.random() * 20,
+                        g: 76 + Math.random() * 40,
+                        b: 60
+                    };
+                } else if (this.type === 'wood' || this.type === 'stone') {
+                    this.settled = true;
+                }
+            }
+
+            draw() {
+                ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+        // Human class
+        class Human {
+            constructor(x, y, gender) {
+                this.x = x;
+                this.y = y;
+                this.gender = gender; // 'male' or 'female'
+                this.size = brushSize * 2;
+                this.vx = 0;
+                this.vy = 0;
+                this.onGround = false;
+                this.direction = Math.random() > 0.5 ? 1 : -1;
+                this.walkTimer = 0;
+                this.color = gender === 'male' ? colors.humanMale : colors.humanFemale;
+            }
+
+            update() {
+                // Gravity
+                this.vy += 0.5;
+                
+                // Random walking
+                this.walkTimer++;
+                if (this.walkTimer > 60) {
+                    this.direction = Math.random() > 0.5 ? 1 : -1;
+                    this.walkTimer = 0;
+                }
+                
+                if (this.onGround) {
+                    this.vx = this.direction * 0.5;
+                }
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Floor collision
+                if (this.y > canvas.height - this.size - 10) {
+                    this.y = canvas.height - this.size - 10;
+                    this.vy = 0;
+                    this.onGround = true;
+                }
+                
+                // Wall collision
+                if (this.x < 0) {
+                    this.x = 0;
+                    this.direction = 1;
+                }
+                if (this.x > canvas.width - this.size) {
+                    this.x = canvas.width - this.size;
+                    this.direction = -1;
+                }
+            }
+
+            draw() {
+                // Body
+                ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                ctx.fillRect(this.x, this.y, this.size, this.size);
+                
+                // Head
+                ctx.fillStyle = '#ffdbac';
+                ctx.fillRect(this.x + 2, this.y - 8, this.size - 4, 8);
+                
+                // Gender indicator on head
+                ctx.fillStyle = this.gender === 'male' ? '#2980b9' : '#c2185b';
+                ctx.fillRect(this.x + 4, this.y - 6, this.size - 8, 4);
+            }
+        }
+
+        // House class
+        class House {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.width = 60;
+                this.height = 50;
+                this.color = colors.house;
+            }
+
+            draw() {
+                // House body
+                ctx.fillStyle = `rgb(${this.color.r}, ${this.color.g}, ${this.color.b})`;
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                
+                // Roof
+                ctx.fillStyle = '#5d4037';
+                ctx.beginPath();
+                ctx.moveTo(this.x - 10, this.y);
+                ctx.lineTo(this.x + this.width / 2, this.y - 30);
+                ctx.lineTo(this.x + this.width + 10, this.y);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Door
+                ctx.fillStyle = '#3e2723';
+                ctx.fillRect(this.x + 22, this.y + 25, 16, 25);
+                
+                // Window
+                ctx.fillStyle = '#81d4fa';
+                ctx.fillRect(this.x + 8, this.y + 10, 12, 12);
+                ctx.fillRect(this.x + 40, this.y + 10, 12, 12);
+            }
+        }
+
+        // Drawing functions
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            
+            return {
+                x: (clientX - rect.left) * scaleX,
+                y: (clientY - rect.top) * scaleY
+            };
+        }
+
+        function drawAt(x, y) {
+            if (currentElement === 'humanMale') {
+                humans.push(new Human(x, y, 'male'));
+            } else if (currentElement === 'humanFemale') {
+                humans.push(new Human(x, y, 'female'));
+            } else if (currentElement === 'house') {
+                houses.push(new House(x - 30, y - 50));
+            } else {
+                // Create multiple particles for brush size
+                for (let i = 0; i < brushSize; i++) {
+                    const offsetX = (Math.random() - 0.5) * brushSize * 2;
+                    const offsetY = (Math.random() - 0.5) * brushSize * 2;
+                    particles.push(new Particle(x + offsetX, y + offsetY, currentElement));
+                }
+            }
+        }
+
+        // Mouse/Touch events
+        canvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const pos = getMousePos(e);
+            drawAt(pos.x, pos.y);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                const pos = getMousePos(e);
+                drawAt(pos.x, pos.y);
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDrawing = false;
+        });
+
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const pos = getMousePos(e);
+            drawAt(pos.x, pos.y);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (isDrawing) {
+                const pos = getMousePos(e);
+                drawAt(pos.x, pos.y);
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isDrawing = false;
+        });
+
+        // Clear button
+        clearBtn.addEventListener('click', () => {
+            particles = [];
+            humans = [];
+            houses = [];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            showNotification('Canvas cleared!');
+        });
+
+        // Auto spawn humans
+        function checkAutoSpawn() {
+            const now = Date.now();
+            const timeLeft = Math.max(0, spawnInterval - (now - lastSpawnTime));
+            nextSpawnEl.textContent = Math.ceil(timeLeft / 1000) + 's';
+            
+            if (timeLeft === 0) {
+                const gender = Math.random() > 0.5 ? 'male' : 'female';
+                const x = Math.random() * (canvas.width - 40) + 20;
+                const y = 50;
+                humans.push(new Human(x, y, gender));
+                lastSpawnTime = now;
+                showNotification(`New ${gender} character joined the family!`);
+            }
+        }
+
+        // Check for house building
+        function checkHouseBuilding() {
+            const population = humans.length;
+            populationEl.textContent = population;
+            housesEl.textContent = houses.length;
+            
+            // Build house every 5 people
+            const housesNeeded = Math.floor(population / houseThreshold);
+            if (houses.length < housesNeeded) {
+                const x = Math.random() * (canvas.width - 100) + 50;
+                const y = canvas.height - 60;
+                houses.push(new House(x, y));
+                showNotification('A new house has been built! 🏠');
+            }
+        }
+
+        // Game loop
+        function gameLoop() {
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw particles
+            particles = particles.filter(p => {
+                if (p.type === 'fire' && p.life <= 0) return false;
+                p.update();
                 p.draw();
                 return true;
             });
             
             // Update and draw humans
-            humans.forEach(human =&gt; {
+            humans.forEach(human => {
                 human.update();
                 human.draw();
             });
             
             // Draw houses
-            houses.forEach(house =&gt; {
+            houses.forEach(house => {
                 house.draw();
             });
             
@@ -29,7 +823,7 @@
             const maxWidth = Math.min(800, container.clientWidth - 20);
             const scale = maxWidth / 800;
             
-            if (window.innerWidth &lt; 768) {
+            if (window.innerWidth < 768) {
                 canvas.style.width = '100%';
                 canvas.style.height = 'auto';
             } else {
@@ -44,5 +838,6 @@
         // Start game
         gameLoop();
         showNotification('Welcome to Family Sandbox! 👋');
-    
-</p>
+    </script>
+</body>
+</html>
